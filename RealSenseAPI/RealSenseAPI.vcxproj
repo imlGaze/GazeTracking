@@ -20,8 +20,8 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{36DD0A94-145E-4CCE-B852-3517B82E94C5}</ProjectGuid>
-    <RootNamespace>GazeTracking</RootNamespace>
+    <ProjectGuid>{677F7500-52A1-4E60-AB62-C81F9FC0D47B}</ProjectGuid>
+    <RootNamespace>RealSenseAPI</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -70,11 +70,11 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Libraries\openCV3.2.0%28x64%29\install\include;C:\Libraries\RSSDK\include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>C:\Libraries\openCV3.2.0%28x64%29\install\include;C:\Libraries\RSSDK\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
     <LibraryPath>C:\Libraries\openCV3.2.0%28x64%29\install\include;C:\Libraries\RSSDK\include;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>C:\Libraries\openCV3.2.0%28x64%29\install\include;C:\Libraries\RSSDK\include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>C:\Libraries\openCV3.2.0%28x64%29\install\include;C:\Libraries\RSSDK\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
     <LibraryPath>C:\Libraries\openCV3.2.0%28x64%29\install\include;C:\Libraries\RSSDK\include;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -89,11 +89,10 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>C:\Libraries\openCV3.2.0(x64)\install\x64\vc14\lib;C:\Libraries\RSSDK\lib\x64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opencv_calib3d320d.lib;opencv_objdetect320d.lib;opencv_video320d.lib;opencv_videoio320d.lib;opencv_highgui320d.lib;opencv_imgcodecs320d.lib;opencv_imgproc320d.lib;opencv_core320d.lib;libpxc_d.lib;libpxcmd_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opencv_imgproc320d.lib;opencv_core320d.lib;libpxc_d.lib;libpxcmd_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -120,18 +119,10 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>opencv_imgproc320.lib;opencv_core320.lib;libpxc.lib;libpxcmd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Libraries\openCV3.2.0(x64)\install\x64\vc14\lib;C:\Libraries\RSSDK\lib\x64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opencv_calib3d320.lib;opencv_objdetect320.lib;opencv_video320.lib;opencv_videoio320.lib;opencv_highgui320.lib;opencv_imgcodecs320.lib;opencv_imgproc320.lib;opencv_core320.lib;libpxc.lib;libpxcmd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="RealSenseAPI\RealSenseAPI.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="const.h" />
-    <ClInclude Include="RealSenseAPI\RealSenseAPI.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
