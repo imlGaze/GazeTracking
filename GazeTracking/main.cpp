@@ -8,6 +8,7 @@
 
 using std::vector;
 using namespace std::chrono;
+using namespace cv;
 using Intel::RealSense::Face::FaceData;
 
 double fps(long nano) {
@@ -25,6 +26,10 @@ int main() {
 	Mat irBinary(IMAGE_HEIGHT, IMAGE_WIDTH, CV_8UC1);
 
 	FILE *feye = DEBUG ? fopen("eye.csv", "w") : nullptr;
+
+	int fs = 3;
+	int er = 2;
+	int di = 3;
 
 	Stopwatch fpsTimer;
 	fpsTimer.start();
@@ -47,7 +52,11 @@ int main() {
 		}
 
 		makeBinary(irGray, irBinary, 100);
-		emphasize(irBinary, irBinary);
+		// emphasize(irBinary, irBinary);
+		
+		Mat element(fs, fs, CV_8UC1); // フィルタサイズ
+		erode(irBinary, irBinary, element, Point(-1, -1), er); // 収縮(ノイズ除去)、対象ピクセルの近傍のうち最大
+		dilate(irBinary, irBinary, element, Point(-1, -1), di); // 膨張（強調）、対象ピクセルの近傍のうち最小
 
 		Point leftEye(-1, -1);
 		Point rightEye(-1, -1);
@@ -99,17 +108,54 @@ int main() {
 					rectangle(irGray, pupils[i] + Point(rectIR.x, rectIR.y), Scalar(0, 255), 2);
 				}
 			}
+
+			Size eyeSize = rectIR.size();
+			Mat eyeGray = Mat(128, 128, CV_8UC3);
+			Mat eyeBinary = Mat(128, 128, CV_8UC1);
+			irGray(rectIR).copyTo(eyeGray(Rect(0, 0, eyeSize.width, eyeSize.height)));
+			irBinary(rectIR).copyTo(eyeBinary(Rect(0, 0, eyeSize.width, eyeSize.height)));
+			imshow("eyeGray", eyeGray);
+			imshow("eyeBinary", eyeBinary);
 		}
 
 		cv::imshow("colorColor", colorColor);
 		cv::imshow("irGray", irGray);
 
-
-		std::cout << "FPS: " << fps(fpsTimer.lap()) << std::endl;
+		// std::cout << "FPS: " << fps(fpsTimer.lap()) << std::endl;
 
 		char key = waitKey(1);
 		if (key == 'q') {
 			break;
+		}
+		else if (key == 'f') {
+			fs++;
+			std::cout << "Filter: " << fs << std::endl;
+		}
+		else if (key == 'F') {
+			if (fs > 0) {
+				fs--;
+				std::cout << "Filter: " << fs << std::endl;
+			}
+		}
+		else if (key == 'e') {
+			er++;
+			std::cout << "Erode: " << er << std::endl;
+		}
+		else if (key == 'E') {
+			if (er > 0) {
+				er--;
+				std::cout << "Erode: " << er << std::endl;
+			}
+		}
+		else if (key == 'd') {
+			di++;
+			std::cout << "Dilate: " << di << std::endl;
+		}
+		else if (key == 'D') {
+			if (di > 0) {
+				di--;
+				std::cout << "Dilate: " << di << std::endl;
+			}
 		}
 	}
 
