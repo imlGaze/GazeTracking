@@ -11,7 +11,7 @@ using namespace std::chrono;
 using Intel::RealSense::Face::FaceData;
 
 double fps(long nano) {
-	return 1000 / ((double) nano / 1000 / 1000);
+	return 1000 / ((double)nano / 1000 / 1000);
 }
 
 int main() {
@@ -23,9 +23,9 @@ int main() {
 	Mat colorColor(IMAGE_HEIGHT, IMAGE_WIDTH, CV_8UC3);
 	Mat irGray(IMAGE_HEIGHT, IMAGE_WIDTH, CV_8UC3);
 	Mat irBinary(IMAGE_HEIGHT, IMAGE_WIDTH, CV_8UC1);
-	Mat H = (Mat_<float>(3, 3) <<	0.7351358246144999, -0.0319196931238943, 37.4838452084103,
-									-0.008067602816914776, 0.7099678351704652, 74.76441033183021,
-									-2.565364511844114e-05, -0.0001259361553461414, 1);
+	Mat H = (Mat_<float>(3, 3) << 0.7351358246144999, -0.0319196931238943, 37.4838452084103,
+		-0.008067602816914776, 0.7099678351704652, 74.76441033183021,
+		-2.565364511844114e-05, -0.0001259361553461414, 1);
 
 	Stopwatch fpsTimer;
 	fpsTimer.start();
@@ -35,18 +35,17 @@ int main() {
 	namedWindow("irGray", CV_WINDOW_AUTOSIZE);
 
 	while (1) {
-		if (! realSense.queryNextFrame(irGray, colorColor, landmarks)) {
+		if (!realSense.queryNextFrame(irGray, colorColor, landmarks)) {
 			// continue;
 		}
 
 		makeBinary(irGray, irBinary, 100);
 		emphasize(irBinary, irBinary);
-		
-		Point leftEye(-1, -1); 
+
+		Point leftEye(-1, -1);
 		Point leftEyeLidL(-1, -1);
 		Point leftEyeLidR(-1, -1);
 
-		
 		for (int i = 0, n = landmarks.size(); i < n; i++) {
 			FaceLandmark landmark = landmarks[i];
 
@@ -54,18 +53,17 @@ int main() {
 				leftEye = Point(landmark.x, landmark.y);
 			}
 
-			if (landmark.type == LandmarkType::LANDMARK_EYELID_LEFT_LEFT) {//左目の左端
+			if (landmark.type == LandmarkType::LANDMARK_EYELID_LEFT_LEFT) {//左目まぶたの左端
 				leftEyeLidL = Point(landmark.x, landmark.y);
 			}
 
-			if (landmark.type == LandmarkType::LANDMARK_EYELID_LEFT_RIGHT) {//左目の右端
+			if (landmark.type == LandmarkType::LANDMARK_EYELID_LEFT_RIGHT) {//左目まぶたの右端
 				leftEyeLidR = Point(landmark.x, landmark.y);
 			}
 		}
 
 		if (leftEye.x != -1) {
-			// TODO: 
-			int base = abs((float) leftEyeLidR.x - leftEyeLidL.x);
+			int base = abs((float)leftEyeLidR.x - leftEyeLidL.x);
 			Rect rectColor = Rect(leftEye.x - base / 2 * 3 / 2, leftEye.y - base / 2, base / 2 * 3, base);
 			rectangle(colorColor, rectColor, Scalar(255), 2);
 
@@ -78,6 +76,7 @@ int main() {
 
 			vector<Rect> pupils;
 			if (findPupils(irBinary(rectIR), pupils)) {
+				// std::sort(pupils.begin(), pupils.end(), [](Rect a, Rect b) { return a.area() < b.area(); });
 				for (int i = 0, n = pupils.size(); i < n; i++) {
 					rectangle(irGray, pupils[i] + Point(rectIR.x, rectIR.y), Scalar(0, 255), 2);
 				}
