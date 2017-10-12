@@ -13,11 +13,6 @@ using namespace Intel::RealSense::Face;
 
 using std::vector;
 
-enum CameraType {
-	IR,
-	COLOR,
-};
-
 struct FaceLandmark {
 	FaceData::LandmarkType type;
 	int x, y;
@@ -31,7 +26,7 @@ struct FaceLandmark {
 
 class RealSenseAPI
 {
-	bool queryImage(Mat& inputImage, CameraType camera);
+	bool RealSenseAPI::queryImage(Mat &irCV, Mat &colorCV);
 	bool queryFaceLandmarks(vector<FaceLandmark> &landmarks);
 public:
 	bool initialize(int imageWidth, int imageHeight, int fps = 30);

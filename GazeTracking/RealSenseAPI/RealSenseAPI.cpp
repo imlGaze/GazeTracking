@@ -56,6 +56,7 @@ bool RealSenseAPI::initialize(int imageWidth, int imageHeight, int fps)
 	return false;
 }
 
+
 bool RealSenseAPI::queryNextFrame(Mat &irImage, Mat &colorImage, vector<FaceLandmark> &landmarks) {
 	status = senseManager->AcquireFrame(true); // Frameを取得
 
@@ -67,11 +68,9 @@ bool RealSenseAPI::queryNextFrame(Mat &irImage, Mat &colorImage, vector<FaceLand
 		return false;
 	}
 
-	bool successIR, successColor, successFace;
-	if (!(successIR = queryImage(irImage, CameraType::IR))) { // IRカメラ画像を取得
+	bool successImage, successFace;
+	if (!(successImage = queryImage(irImage, colorImage))) { // カメラ画像を取得
 		renderNoSignal(irImage);
-	}
-	if (!(successColor = queryImage(colorImage, CameraType::COLOR))) { // Colorカメラ画像を取得
 		renderNoSignal(colorImage);
 	}
 
@@ -80,10 +79,14 @@ bool RealSenseAPI::queryNextFrame(Mat &irImage, Mat &colorImage, vector<FaceLand
 
 	senseManager->ReleaseFrame();
 
-	return successIR && successColor && successFace; // すべて成功した場合のみtrue
+	return successImage && successFace; // すべて成功した場合のみtrue
 }
 
-bool RealSenseAPI::queryImage(Mat& inputImage, CameraType camera)
+void realSenseToCV(Image::ImageData src, Mat &dest) {
+	memcpy(dest.data, src.planes[0], src.pitches[0] * dest.size().height); // RealSenseの画像データからOpenCVのMatにデータを流す
+}
+
+bool RealSenseAPI::queryImage(Mat &irCV, Mat &colorCV)
 {
 	if (status < Status::STATUS_NO_ERROR) {
 		return false;
@@ -92,30 +95,34 @@ bool RealSenseAPI::queryImage(Mat& inputImage, CameraType camera)
 	const Capture::Sample *sample = senseManager->QuerySample();
 	if (sample)
 	{
-		Image *img = camera == IR ? sample->ir : sample->color; // cameraによってデータ取得元を切り替え
-		Image::PixelFormat format = camera == IR ? Image::PIXEL_FORMAT_Y16 : Image::PIXEL_FORMAT_RGB24; // cameraによってデータ形式を切り替え // TODO: PIXEL_FORMAT_Y8を使えないか？
+		Image *colorRS = sample->color;
+		Image *irRS = sample->ir;
+		// Image *depthRS = projection->CreateDepthImageMappedToColor(sample->depth, sample->color);
 
-		Image::ImageData data = {}; //={}構造体の初期化方法;
-		Image::Rotation rotation = img->QueryRotation();
+		Image::ImageData colorData = {}; //={}構造体の初期化方法
+		Image::ImageData irData = {};
 
-		status = img->AcquireAccess(Image::ACCESS_READ, format, rotation, Image::OPTION_ANY, &data); // 画像データ取得
+		Image::ImageInfo colorInfo = colorRS->QueryInfo();
+		Image::ImageInfo irInfo = irRS->QueryInfo();
 
-		if (status >= Status::STATUS_NO_ERROR) // エラーなし
+		// 画像データ取得
+		Status colorStatus = colorRS->AcquireAccess(Image::ACCESS_READ, Image::PIXEL_FORMAT_RGB24, colorRS->QueryRotation(), Image::OPTION_ANY, &colorData);
+		Status irStatus = irRS->AcquireAccess(Image::ACCESS_READ, Image::PIXEL_FORMAT_Y16, irRS->QueryRotation(), Image::OPTION_ANY, &irData);
+		if (colorStatus >= Status::STATUS_NO_ERROR && irStatus >= Status::STATUS_NO_ERROR) // エラーなし
 		{
-			/* ここでinputImageにカメラ画像をコピー */
-			Mat buffer(inputImage.size(), camera == IR ? CV_16UC1 : CV_8UC3, Scalar(0)); // cameraによってビット数が違う. IR: 16bit, Color: 24bit / 3CH = 8bit
-			memcpy(buffer.data, data.planes[0], data.pitches[0] * 480); // RealSenseの画像データからOpenCVのMatにデータを流す
+			realSenseToCV(colorData, colorCV);
 
-			if (camera == IR) { // IRの場合、3CH化する
-				Mat buffer8U(inputImage.size(), CV_8UC1);
-				buffer.convertTo(buffer8U, CV_8UC3); // 16bit -> 8bit // PIXEL_FORMAT? // 3ch? 1ch?
-				cvtColor(buffer8U, inputImage, CV_GRAY2BGR); //  // 1ch(Y) -> 3ch(B, G, R)
-			}
-			else { // Colorは当然もとから3CH
-				inputImage = buffer;
-			}
+			Mat irBuffer16UC1(irCV.size(), CV_16UC1);
+			realSenseToCV(irData, irBuffer16UC1);
+			Mat irBuffer8UC1(irCV.size(), CV_8UC1);
+			irBuffer16UC1.convertTo(irBuffer8UC1, CV_8UC1);
+			cvtColor(irBuffer8UC1, irCV, CV_GRAY2BGR); // 1ch(Y) -> 3ch(B, G, R)
 
-			img->ReleaseAccess(&data); // RealSenseの画像データを解放
+													   // RealSenseの画像データを解放
+			colorRS->ReleaseAccess(&colorData);
+			irRS->ReleaseAccess(&irData);
+
+			// projection->Release();
 			return true;
 		}
 		else
