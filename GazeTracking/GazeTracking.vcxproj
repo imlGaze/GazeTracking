@@ -88,8 +88,9 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <SDLCheck>true</SDLCheck>
+      <SDLCheck>false</SDLCheck>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>C:\Libraries\openCV3.2.0(x64)\install\x64\vc14\lib;C:\Libraries\RSSDK\lib\x64</AdditionalLibraryDirectories>
@@ -130,6 +131,8 @@
     <ClCompile Include="PreProcessor.cpp" />
     <ClCompile Include="RealSenseAPI\RealSenseAPI.cpp" />
     <ClCompile Include="Stopwatch.cpp" />
+    <ClCompile Include="UDP\UDPTest.cpp" />
+    <ClCompile Include="UDP\UDP.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="const.h" />
@@ -137,6 +140,7 @@
     <ClInclude Include="PreProcessor.h" />
     <ClInclude Include="RealSenseAPI\RealSenseAPI.h" />
     <ClInclude Include="Stopwatch.h" />
+    <ClInclude Include="UDP\UDP.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
