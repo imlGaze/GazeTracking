@@ -12,26 +12,16 @@ using namespace Intel::RealSense;
 using namespace Intel::RealSense::Face;
 
 using std::vector;
-
-struct FaceLandmark {
-	FaceData::LandmarkType type;
-	int x, y;
-
-	FaceLandmark(FaceData::LandmarkType type, int x, int y) {
-		FaceLandmark::type = type;
-		FaceLandmark::x = x;
-		FaceLandmark::y = y;
-	}
-};
+using std::map;
 
 class RealSenseAPI
 {
 	bool RealSenseAPI::queryImage(Mat &irCV, Mat &colorCV);
-	bool queryFaceLandmarks(vector<FaceLandmark> &landmarks);
+	bool queryFaceLandmarks(map<LandmarkType, Point> &landmarks);
 public:
 	bool initialize(int imageWidth, int imageHeight, int fps = 30);
 
-	bool queryNextFrame(Mat &irImage, Mat &colorImage, vector<FaceLandmark> &landmarks);
+	bool queryNextFrame(Mat &irImage, Mat &colorImage, map<LandmarkType, Point> &landmarks);
 
 	~RealSenseAPI() {
 		senseManager->Release();

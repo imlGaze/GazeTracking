@@ -5,8 +5,10 @@
 #include "MainProcessor.h"
 #include "Stopwatch.h"
 #include "const.h"
+#include<map>
 
 using std::vector;
+using std::map;
 using namespace std::chrono;
 using namespace cv;
 using Intel::RealSense::Face::FaceData;
@@ -14,6 +16,9 @@ using Intel::RealSense::Face::FaceData;
 double fps(long nano) {
 	return 1000 / ((double)nano / 1000 / 1000);
 }
+
+map<LandmarkType, Point> landmarks;
+
 
 int main() {
 	RealSenseAPI realSense;
@@ -37,7 +42,7 @@ int main() {
 
 	Stopwatch fpsTimer;
 	fpsTimer.start();
-	vector<FaceLandmark> landmarks;
+	map<LandmarkType, Point> landmarks;
 
 	namedWindow("colorColor", CV_WINDOW_AUTOSIZE);
 	namedWindow("irGray", CV_WINDOW_AUTOSIZE);
@@ -55,37 +60,27 @@ int main() {
 			wir << irGray;
 		}
 
-		makeBinary(irGray, irBinary, 100);
+		makeBinary(irGray, irBinary, 80);
 		// emphasize(irBinary, irBinary);
-		
-		Mat element(fs, fs, CV_8UC1); // フィルタサイズ
-		erode(irBinary, irBinary, element, Point(-1, -1), er); // 収縮(ノイズ除去)、対象ピクセルの近傍のうち最大
-		dilate(irBinary, irBinary, element, Point(-1, -1), di); // 膨張（強調）、対象ピクセルの近傍のうち最小
 
 		Point leftEye(-1, -1);
-		Point rightEye(-1, -1);
 		Point leftEyeLidL(-1, -1);
 		Point leftEyeLidR(-1, -1);
 
-		for (int i = 0, n = landmarks.size(); i < n; i++) {
-			FaceLandmark landmark = landmarks[i];
+		Point rightEye(-1, -1);
+		Point rightEyeLidL(-1, -1);
+		Point rightEyeLidR(-1, -1);
 
-			if (landmark.type == LandmarkType::LANDMARK_EYE_LEFT_CENTER) {//左目の中心
-				leftEye = Point(landmark.x, landmark.y);
-			}
+		leftEye = landmarks[LandmarkType::LANDMARK_EYE_LEFT_CENTER]; //左目の中心
+		leftEyeLidL = landmarks[LandmarkType::LANDMARK_EYELID_LEFT_LEFT]; //左目瞼の左端
+		leftEyeLidR = landmarks[LandmarkType::LANDMARK_EYELID_LEFT_RIGHT]; //左目瞼の右端
 
-			if (landmark.type == LandmarkType::LANDMARK_EYE_RIGHT_CENTER) {//左目の中心
-				rightEye = Point(landmark.x, landmark.y);
-			}
+		rightEye = landmarks[LandmarkType::LANDMARK_EYE_RIGHT_CENTER]; //右目の中心
+		rightEyeLidL = landmarks[LandmarkType::LANDMARK_EYELID_RIGHT_LEFT]; //右目瞼の左端
+		rightEyeLidR = landmarks[LandmarkType::LANDMARK_EYELID_RIGHT_RIGHT]; //右目瞼の右端
 
-			if (landmark.type == LandmarkType::LANDMARK_EYELID_LEFT_LEFT) {//左目まぶたの左端
-				leftEyeLidL = Point(landmark.x, landmark.y);
-			}
-
-			if (landmark.type == LandmarkType::LANDMARK_EYELID_LEFT_RIGHT) {//左目まぶたの右端
-				leftEyeLidR = Point(landmark.x, landmark.y);
-			}
-		}
+		RenderEye(colorColor, irGray, irBinary, H, leftEye, leftEyeLidL, leftEyeLidR);
+		RenderEye(colorColor, irGray, irBinary, H, rightEye, rightEyeLidL, rightEyeLidR);
 
 		if (DEBUG) {
 			fprintf(feye, "%d,%d,%d,%d\n", leftEye.x, leftEye.y, rightEye.x, rightEye.y);
@@ -122,44 +117,13 @@ int main() {
 			imshow("eyeGray", eyeGray);
 			imshow("eyeBinary", eyeBinary);
 		}
-		cv::imshow("colorColor", colorColor);
-		cv::imshow("irGray", irGray);
 
-		// std::cout << "FPS: " << fps(fpsTimer.lap()) << std::endl;
+		imshow("colorColor", colorColor);
+		imshow("irGray", irGray);
 
 		char key = waitKey(1);
 		if (key == 'q') {
 			break;
-		}
-		else if (key == 'f') {
-			fs++;
-			std::cout << "Filter: " << fs << std::endl;
-		}
-		else if (key == 'F') {
-			if (fs > 0) {
-				fs--;
-				std::cout << "Filter: " << fs << std::endl;
-			}
-		}
-		else if (key == 'e') {
-			er++;
-			std::cout << "Erode: " << er << std::endl;
-		}
-		else if (key == 'E') {
-			if (er > 0) {
-				er--;
-				std::cout << "Erode: " << er << std::endl;
-			}
-		}
-		else if (key == 'd') {
-			di++;
-			std::cout << "Dilate: " << di << std::endl;
-		}
-		else if (key == 'D') {
-			if (di > 0) {
-				di--;
-				std::cout << "Dilate: " << di << std::endl;
-			}
 		}
 	}
 
@@ -167,6 +131,8 @@ int main() {
 		fclose(feye);
 	}
 	std::cout << "Total: " << fpsTimer.stop() << std::endl;
-	
+
 	return 0;
+
 }
+

@@ -2,6 +2,7 @@
 
 using namespace cv;
 
+
 bool makeBinary(Mat gray, Mat &binary, int thresh) {
 	Mat buffer(gray.size(), CV_8UC1);
 	cvtColor(gray, buffer, CV_BGR2GRAY);
@@ -29,3 +30,4 @@ bool emphasize(Mat src, Mat &dest) {
 
 	return true;
 }
+

@@ -13,6 +13,7 @@ using namespace Intel::RealSense;
 using namespace Intel::RealSense::Face;
 
 using std::vector;
+using std::map;
 
 
 void renderNoSignal(Mat &image) {
@@ -37,7 +38,7 @@ bool RealSenseAPI::initialize(int imageWidth, int imageHeight, int fps)
 	{
 		device->ResetProperties(Capture::STREAM_TYPE_ANY);
 		device->SetMirrorMode(Capture::Device::MirrorMode::MIRROR_MODE_DISABLED);
-		device->SetIVCAMLaserPower(1); // IRレーザーの出力を設定
+		device->SetIVCAMLaserPower(3); // IRレーザーの出力を設定
 
 		fmod = senseManager->QueryFace(); // FaceModuleの取得
 		fdata = fmod->CreateOutput(); // FaceModuleの出力先の取得
@@ -56,8 +57,7 @@ bool RealSenseAPI::initialize(int imageWidth, int imageHeight, int fps)
 	return false;
 }
 
-
-bool RealSenseAPI::queryNextFrame(Mat &irImage, Mat &colorImage, vector<FaceLandmark> &landmarks) {
+bool RealSenseAPI::queryNextFrame(Mat &irImage, Mat &colorImage, map<LandmarkType, Point> &landmarks) {
 	status = senseManager->AcquireFrame(true); // Frameを取得
 
 	if (status < Status::STATUS_NO_ERROR) { // エラー
@@ -138,7 +138,7 @@ bool RealSenseAPI::queryImage(Mat &irCV, Mat &colorCV)
 	}
 }
 
-bool RealSenseAPI::queryFaceLandmarks(vector<FaceLandmark> &landmarks) {
+bool RealSenseAPI::queryFaceLandmarks(map<LandmarkType, Point> &landmarks) {
 	if (status < Status::STATUS_NO_ERROR) {
 		return false;
 	}
@@ -162,7 +162,7 @@ bool RealSenseAPI::queryFaceLandmarks(vector<FaceLandmark> &landmarks) {
 							int x = landmarkPoints[j].image.x; // 特徴点の座標
 							int y = landmarkPoints[j].image.y;
 
-							landmarks.push_back(FaceLandmark(alias, x, y));
+							landmarks.insert(std::pair<FaceData::LandmarkType, Point>(alias, Point(x, y)));
 						}
 
 						return true;
