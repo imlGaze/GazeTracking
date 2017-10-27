@@ -16,7 +16,7 @@ bool makeGray(Mat color, Mat &gray) {
 	Mat buffer(color.size(), CV_8UC1);
 	cvtColor(color, buffer, CV_BGR2GRAY);
 	cvtColor(buffer, gray, CV_GRAY2BGR);
-	
+
 	return true;
 }
 

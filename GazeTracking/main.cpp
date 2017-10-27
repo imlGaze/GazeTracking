@@ -23,9 +23,8 @@ int main() {
 	Mat colorColor(IMAGE_HEIGHT, IMAGE_WIDTH, CV_8UC3);
 	Mat irGray(IMAGE_HEIGHT, IMAGE_WIDTH, CV_8UC3);
 	Mat irBinary(IMAGE_HEIGHT, IMAGE_WIDTH, CV_8UC1);
-	Mat H = (Mat_<float>(3, 3) << 0.7351358246144999, -0.0319196931238943, 37.4838452084103,
-		-0.008067602816914776, 0.7099678351704652, 74.76441033183021,
-		-2.565364511844114e-05, -0.0001259361553461414, 1);
+
+	FILE *feye = DEBUG ? fopen("eye.csv", "w") : nullptr;
 
 	Stopwatch fpsTimer;
 	fpsTimer.start();
@@ -33,16 +32,25 @@ int main() {
 
 	namedWindow("colorColor", CV_WINDOW_AUTOSIZE);
 	namedWindow("irGray", CV_WINDOW_AUTOSIZE);
+	
+	VideoWriter wcol = DEBUG ? VideoWriter("color.avi", CV_FOURCC_DEFAULT, 30, cv::Size(IMAGE_WIDTH, IMAGE_HEIGHT), true) : VideoWriter();
+	VideoWriter wir = DEBUG ? VideoWriter("ir.avi", CV_FOURCC_DEFAULT, 30, cv::Size(IMAGE_WIDTH, IMAGE_HEIGHT), true) : VideoWriter();
 
 	while (1) {
 		if (!realSense.queryNextFrame(irGray, colorColor, landmarks)) {
 			// continue;
+		}
+		
+		if (DEBUG) {
+			wcol << colorColor;
+			wir << irGray;
 		}
 
 		makeBinary(irGray, irBinary, 100);
 		emphasize(irBinary, irBinary);
 
 		Point leftEye(-1, -1);
+		Point rightEye(-1, -1);
 		Point leftEyeLidL(-1, -1);
 		Point leftEyeLidR(-1, -1);
 
@@ -51,6 +59,10 @@ int main() {
 
 			if (landmark.type == LandmarkType::LANDMARK_EYE_LEFT_CENTER) {//¶–Ú‚Ì’†S
 				leftEye = Point(landmark.x, landmark.y);
+			}
+
+			if (landmark.type == LandmarkType::LANDMARK_EYE_RIGHT_CENTER) {//¶–Ú‚Ì’†S
+				rightEye = Point(landmark.x, landmark.y);
 			}
 
 			if (landmark.type == LandmarkType::LANDMARK_EYELID_LEFT_LEFT) {//¶–Ú‚Ü‚Ô‚½‚Ì¶’[
@@ -62,10 +74,16 @@ int main() {
 			}
 		}
 
+		if (DEBUG) {
+			fprintf(feye, "%d,%d,%d,%d\n", leftEye.x, leftEye.y, rightEye.x, rightEye.y);
+			fflush(feye);
+		}
+
 		if (leftEye.x != -1) {
 			int base = abs((float)leftEyeLidR.x - leftEyeLidL.x);
 			Rect rectColor = Rect(leftEye.x - base / 2 * 3 / 2, leftEye.y - base / 2, base / 2 * 3, base);
 			rectangle(colorColor, rectColor, Scalar(255), 2);
+			rectangle(colorColor, Rect(leftEye.x - 8, leftEye.y - 8, 16, 16), Scalar(0, 0, 255), 2);
 
 			Mat leftEyeMatColor = (Mat_<float>(3, 1) << leftEye.x, leftEye.y, 1);
 			Mat leftEyeMatIR = H * leftEyeMatColor;
@@ -83,8 +101,8 @@ int main() {
 			}
 		}
 
-		imshow("colorColor", colorColor);
-		imshow("irGray", irGray);
+		cv::imshow("colorColor", colorColor);
+		cv::imshow("irGray", irGray);
 
 
 		std::cout << "FPS: " << fps(fpsTimer.lap()) << std::endl;
@@ -95,6 +113,9 @@ int main() {
 		}
 	}
 
+	if (DEBUG) {
+		fclose(feye);
+	}
 	std::cout << "Total: " << fpsTimer.stop() << std::endl;
 	
 	return 0;

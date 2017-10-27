@@ -14,3 +14,5 @@ const int CHESS_ROWS = 7;
 const Size CHESS_PATTERN = Size(CHESS_COLS, CHESS_ROWS);
 
 const bool CALIB_SKIP_CHECK = 1;
+
+const bool DEBUG = true;
