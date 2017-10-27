@@ -127,8 +127,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="MainProcessor.cpp" />
-    <ClCompile Include="PreProcessor.cpp" />
+    <ClCompile Include="PupilFinder.cpp" />
     <ClCompile Include="RealSenseAPI\RealSenseAPI.cpp" />
     <ClCompile Include="Stopwatch.cpp" />
     <ClCompile Include="UDP\UDPTest.cpp" />
@@ -136,8 +135,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="const.h" />
-    <ClInclude Include="MainProcessor.h" />
-    <ClInclude Include="PreProcessor.h" />
+    <ClInclude Include="PupilFinder.h" />
     <ClInclude Include="RealSenseAPI\RealSenseAPI.h" />
     <ClInclude Include="Stopwatch.h" />
     <ClInclude Include="UDP\UDP.h" />
