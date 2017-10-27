@@ -38,7 +38,7 @@ bool RealSenseAPI::initialize(int imageWidth, int imageHeight, int fps)
 	{
 		device->ResetProperties(Capture::STREAM_TYPE_ANY);
 		device->SetMirrorMode(Capture::Device::MirrorMode::MIRROR_MODE_DISABLED);
-		device->SetIVCAMLaserPower(3); // IRレーザーの出力を設定
+		device->SetIVCAMLaserPower(1); // IRレーザーの出力を設定
 
 		fmod = senseManager->QueryFace(); // FaceModuleの取得
 		fdata = fmod->CreateOutput(); // FaceModuleの出力先の取得

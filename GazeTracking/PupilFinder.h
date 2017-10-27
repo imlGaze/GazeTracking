@@ -17,12 +17,16 @@ class PupilFinder {
 		-0.008067602816914776, 0.7099678351704652, 74.76441033183021,
 		-2.565364511844114e-05, -0.0001259361553461414, 1);
 
+	bool findPupil(Mat crop, Point &pupil);
+	Rect getEyeCrop(Point center, Point lidLeft, Point lidRight);
+	void emphasize(Mat img);
+
 public:
 	void setThreshold(int thresh);
 	void setErode(int erode_itr);
 	void setDilate(int dilate_itr);
 
-	bool PupilFinder::find(Mat ir, Mat color, map<FaceData::LandmarkType, Point> landmarks, Point &pupil);
+	bool PupilFinder::find(Mat ir, Mat color, map<FaceData::LandmarkType, Point> landmarks, Point &leftPupil, Point &rightPupil);
 
 };
 
