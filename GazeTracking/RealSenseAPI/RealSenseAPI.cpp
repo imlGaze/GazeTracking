@@ -8,12 +8,14 @@
 
 #include"RealSenseAPI.h"
 
-using namespace cv;
 using namespace Intel::RealSense;
 using namespace Intel::RealSense::Face;
 
 using std::vector;
 using std::map;
+using cv::Mat;
+using cv::Point;
+using cv::Scalar;
 
 
 void renderNoSignal(Mat &image) {

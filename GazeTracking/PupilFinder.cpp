@@ -4,16 +4,18 @@
 #include "PupilFinder.h"
 #include "const.h"
 
-using namespace cv;
 using namespace Intel::RealSense;
 using namespace Intel::RealSense::Face;
 
 using std::vector;
+using cv::Point;
+using cv::Rect;
+using cv::Mat;
 
 bool PupilFinder::findPupil(Mat crop, Point &pupil) {
 	vector<vector<Point>> contours;
 	// 輪郭(Contour)抽出、RETR_EXTERNALで最も外側のみ、CHAIN_APPROX_NONEですべての輪郭点（輪郭を構成する点）を格納
-	findContours(crop, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+	findContours(crop, contours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
 
 	Size size = crop.size();
 	vector<Rect> pupils;
@@ -21,12 +23,14 @@ bool PupilFinder::findPupil(Mat crop, Point &pupil) {
 	for (int i = 0, n = contours.size(); i < n; i++)
 	{
 		Rect rect = boundingRect(contours[i]); // 点の集合に外接する傾いていない矩形を求める
+		// cv::rectangle(crop, rect, cv::Scalar(0, 0, 255), 2);
 
 		Point lt = Point(rect.x, rect.y);
 		Point rt = Point(rect.x + rect.width, rect.y);
 		Point lb = Point(rect.x, rect.y + rect.height);
 		Point rb = Point(rect.x + rect.width, rect.y + rect.height);
 
+		/*
 		const int margin = 8; // 適当
 		if (lt.x <= margin || lb.x <= margin)  continue;
 		if (lt.y <= margin || rt.y <= margin)  continue;
@@ -34,12 +38,21 @@ bool PupilFinder::findPupil(Mat crop, Point &pupil) {
 		if (size.height - margin <= lb.y || size.height - margin <= rb.y) continue;
 		//枠に被るやつを除外
 		//if (rect.width > rect.height) continue; //横長を除外
-		if (rect.area() < 30)continue;//小さいのを除外
+		if (rect.area() < 30) continue;//小さいのを除外
+		*/
 
 		pupils.push_back(rect);
 	}
 
-	return pupils.size() != 0;
+	if (pupils.size() != 0)
+	{
+		std::sort(pupils.begin(), pupils.end(), [](Rect a, Rect b) -> bool { return a.area() < b.area(); });
+		pupil = Point(pupils[0].x, pupils[0].y);
+
+		return true;
+	}
+
+	return false;
 }
 
 void PupilFinder::emphasize(Mat img) {
@@ -79,17 +92,43 @@ bool PupilFinder::find(Mat ir, Mat color, map<FaceData::LandmarkType, Point> lan
 	bool left = false;
 	bool right = false;
 	if (leftEye.x != -1) {
-		Mat leftEyeCrop = irBinary(getEyeCrop(leftEye, leftEyeLidL, leftEyeLidR));
-		emphasize(leftEyeCrop);
+		Rect r = getEyeCrop(leftEye, leftEyeLidL, leftEyeLidR);
+		if (r.area() > 0) {
+			Mat leftEyeCrop = irBinary(r);
+			emphasize(leftEyeCrop);
 
-		left = findPupil(leftEyeCrop, leftPupil);
+			left = findPupil(leftEyeCrop, leftPupil);
+			if (DEBUG) {
+				cv::rectangle(ir, r, cv::Scalar(255), 2);
+			}
+
+			leftPupil += Point(r.x, r.y);
+
+			cv::imshow("leftEye", leftEyeCrop);
+		}
 	}
 
 	if (rightEye.x != -1) {
-		Mat rightEyeCrop = irBinary(getEyeCrop(rightEye, rightEyeLidL, rightEyeLidR));
-		emphasize(rightEyeCrop);
+		Rect r = getEyeCrop(rightEye, rightEyeLidL, rightEyeLidR);
+		if (r.area() > 0) {
+			Mat rightEyeCrop = irBinary(r);
+			emphasize(rightEyeCrop);
 
-		right = findPupil(rightEyeCrop, rightPupil);
+			right = findPupil(rightEyeCrop, rightPupil);
+			if (DEBUG) {
+				cv::rectangle(ir, r, cv::Scalar(255), 2);
+			}
+
+			rightPupil += Point(r.x, r.y);
+
+			cv::imshow("rightEye", rightEyeCrop);
+		}
+	}
+
+
+	cv::imshow("binary", irBinary);
+	if (DEBUG) {
+		wirb << irBinary;
 	}
 
 	if (left || right) {
