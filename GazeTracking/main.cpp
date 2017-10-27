@@ -53,9 +53,11 @@ int main() {
 			wir << ir;
 		}
 
-		vector<Point> pupils;
-		if (finder.find(ir, color, landmarks, pupils)) {
-
+		Point pupil;
+		if (finder.find(ir, color, landmarks, pupil)) {
+			if (DEBUG) {
+				rectangle(color, Rect(pupil.x - 8, pupil.y - 8, 16, 16), Scalar(255), 2);
+			}
 		}
 
 		if (DEBUG) {

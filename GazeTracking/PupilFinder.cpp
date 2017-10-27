@@ -10,7 +10,7 @@ using namespace Intel::RealSense::Face;
 
 using std::vector;
 
-bool PupilFinder::find(Mat ir, Mat color, map<FaceData::LandmarkType, Point> landmarks, vector<Point> &pupils) {
+bool PupilFinder::find(Mat ir, Mat color, map<FaceData::LandmarkType, Point> landmarks, Point &pupil) {
 	Mat ir1ch;
 	cvtColor(ir, ir1ch, CV_BGR2GRAY);
 
@@ -49,7 +49,8 @@ bool PupilFinder::find(Mat ir, Mat color, map<FaceData::LandmarkType, Point> lan
 		vector<vector<Point>> contours;
 		// 輪郭(Contour)抽出、RETR_EXTERNALで最も外側のみ、CHAIN_APPROX_NONEですべての輪郭点（輪郭を構成する点）を格納
 		findContours(irBinaryCrop, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
-
+		
+		vector<Rect> pupils;
 
 		for (int i = 0, n = contours.size(); i < n; i++)
 		{
@@ -69,10 +70,9 @@ bool PupilFinder::find(Mat ir, Mat color, map<FaceData::LandmarkType, Point> lan
 			//if (rect.width > rect.height) continue; //横長を除外
 			if (rect.area() < 30)continue;//小さいのを除外
 
-			pupils.push_back(Point(rect.x, rect.y));
+			pupils.push_back(rect);
 		}
-
-		// std::sort(pupils.begin(), pupils.end(), [](Rect a, Rect b) { return a.area() < b.area(); });
+		
 		if (DEBUG) {
 			for (int i = 0, n = pupils.size(); i < n; i++) {
 				rectangle(ir, Rect(pupils[i].x - 8, pupils[i].y - 8, 16, 16) + Point(rectIR.x, rectIR.y), Scalar(0, 255), 2);
@@ -95,8 +95,16 @@ bool PupilFinder::find(Mat ir, Mat color, map<FaceData::LandmarkType, Point> lan
 			imshow("eyeGray", eyeGray);
 			imshow("eyeBinary", eyeBinary);
 		}
+
+
+		if (pupils.size() > 0) {
+			std::sort(pupils.begin(), pupils.end(), [](Rect a, Rect b) { return a.area() < b.area(); });
+
+			pupil = Point(pupils[0].x, pupils[1].y);
+			return true;
+		}
 	}
 
-	return pupils.size() != 0;
+	return false;
 
 }

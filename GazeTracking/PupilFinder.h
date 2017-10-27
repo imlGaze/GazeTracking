@@ -22,7 +22,7 @@ public:
 	void setErode(int erode_itr);
 	void setDilate(int dilate_itr);
 
-	bool PupilFinder::find(Mat ir, Mat color, map<FaceData::LandmarkType, Point> landmarks, vector<Point> &pupils);
+	bool PupilFinder::find(Mat ir, Mat color, map<FaceData::LandmarkType, Point> landmarks, Point &pupil);
 
 };
 
