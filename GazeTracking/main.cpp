@@ -25,6 +25,10 @@ int main() {
 	Mat irGray(IMAGE_HEIGHT, IMAGE_WIDTH, CV_8UC3);
 	Mat irBinary(IMAGE_HEIGHT, IMAGE_WIDTH, CV_8UC1);
 
+	Mat H = (Mat_<float>(3, 3) << 0.7351358246144999, -0.0319196931238943, 37.4838452084103,
+		-0.008067602816914776, 0.7099678351704652, 74.76441033183021,
+		-2.565364511844114e-05, -0.0001259361553461414, 1);
+
 	FILE *feye = DEBUG ? fopen("eye.csv", "w") : nullptr;
 
 	int fs = 3;
@@ -109,6 +113,7 @@ int main() {
 				}
 			}
 
+
 			Size eyeSize = rectIR.size();
 			Mat eyeGray = Mat(128, 128, CV_8UC3);
 			Mat eyeBinary = Mat(128, 128, CV_8UC1);
@@ -117,7 +122,6 @@ int main() {
 			imshow("eyeGray", eyeGray);
 			imshow("eyeBinary", eyeBinary);
 		}
-
 		cv::imshow("colorColor", colorColor);
 		cv::imshow("irGray", irGray);
 
