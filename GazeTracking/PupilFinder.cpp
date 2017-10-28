@@ -102,7 +102,7 @@ bool PupilFinder::find(Mat ir, Mat color, map<FaceData::LandmarkType, Point> lan
 				cv::rectangle(ir, r, cv::Scalar(255), 2);
 			}
 
-			leftPupil += Point(r.x, r.y);
+			// leftPupil += Point(r.x, r.y);
 
 			cv::imshow("leftEye", leftEyeCrop);
 		}
@@ -119,7 +119,7 @@ bool PupilFinder::find(Mat ir, Mat color, map<FaceData::LandmarkType, Point> lan
 				cv::rectangle(ir, r, cv::Scalar(255), 2);
 			}
 
-			rightPupil += Point(r.x, r.y);
+			// rightPupil += Point(r.x, r.y);
 
 			cv::imshow("rightEye", rightEyeCrop);
 		}
