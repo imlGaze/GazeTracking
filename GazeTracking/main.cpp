@@ -6,6 +6,9 @@
 #include "UDP/UDP.h"
 #include "const.h"
 #include <map>
+#include <thread>
+#include <atomic>
+#include <random>
 
 using std::vector;
 using std::map;
@@ -24,6 +27,12 @@ double fps(long nano) {
 }
 
 int main() {
+	WSAData wsaData;
+	if (WSAStartup(MAKEWORD(2, 0), &wsaData) != 0) {
+		std::cout << "WSAStartup Error" << std::endl;
+	}
+
+
 	RealSenseAPI realSense;
 	if (!realSense.initialize(IMAGE_WIDTH, IMAGE_HEIGHT)) {
 		std::cout << "ERROR: No device was found" << std::endl;
@@ -44,25 +53,50 @@ int main() {
 	VideoWriter wir = DEBUG ? VideoWriter("ir.avi", CV_FOURCC_DEFAULT, 30, Size(IMAGE_WIDTH, IMAGE_HEIGHT), true) : VideoWriter();
 	VideoWriter wcol = DEBUG ? VideoWriter("color.avi", CV_FOURCC_DEFAULT, 30, Size(IMAGE_WIDTH, IMAGE_HEIGHT), true) : VideoWriter();
 
-	UDP udp(31416, "127.0.0.1");
 	PupilFinder finder;
 
+	Point leftPupil, rightPupil;
+	UDP udp(31416, "127.0.0.1");
+
+	bool running = true;
+	std::thread udpThread([&running, &leftPupil, &rightPupil]() -> void {
+		UDP udp(31416, "127.0.0.1");
+
+		while (running) {
+			int lx = leftPupil.x;
+			int ly = leftPupil.y;
+			int rx = rightPupil.x;
+			int ry = rightPupil.y;
+
+			unsigned char data[] = {
+				(lx >> 24) & 0xFF, (lx >> 16) & 0xFF, (lx >> 8) & 0xFF, lx & 0xFF,
+				(ly >> 24) & 0xFF, (ly >> 16) & 0xFF, (ly >> 8) & 0xFF, ly & 0xFF,
+				(rx >> 24) & 0xFF, (rx >> 16) & 0xFF, (rx >> 8) & 0xFF, rx & 0xFF,
+				(ry >> 24) & 0xFF, (ry >> 16) & 0xFF, (ry >> 8) & 0xFF, ry & 0xFF,
+			};
+
+			bool rs = udp.send(data, sizeof data);
+			
+			if (DEBUG) {
+				if (rs) {
+					std::cout << "Pupil: " << leftPupil << ", " << rightPupil << std::endl;
+				}
+				else {
+					// std::cout << "Error" << std::endl;
+				}
+			}
+			
+			Sleep(16);
+		}
+	});
+
+	std::random_device rnd;
 	while (1) {
 		if (!realSense.queryNextFrame(ir, color, landmarks)) {
 			// continue;
 		}
 		
-		Point leftPupil, rightPupil;
 		finder.find(ir, color, landmarks, leftPupil, rightPupil);
-		unsigned char data[] = {
-			(leftPupil.x >> 24) & 0xFF, (leftPupil.x >> 16) & 0xFF, (leftPupil.x >> 8) & 0xFF, leftPupil.x & 0xFF,
-			(leftPupil.y >> 24) & 0xFF, (leftPupil.y >> 16) & 0xFF, (leftPupil.y >> 8) & 0xFF, leftPupil.y & 0xFF,
-			(rightPupil.x >> 24) & 0xFF, (rightPupil.x >> 16) & 0xFF, (rightPupil.x >> 8) & 0xFF, rightPupil.x & 0xFF,
-			(rightPupil.y >> 24) & 0xFF, (rightPupil.y >> 16) & 0xFF, (rightPupil.y >> 8) & 0xFF, rightPupil.y & 0xFF,
-		};
-
-		udp.send(data, sizeof data); // TODO: needs timeout? sometimes freeze!
-
 
 		if (DEBUG) {
 			if (leftPupil.x > 8 && leftPupil.y > 8) {
@@ -122,14 +156,31 @@ int main() {
 		else if (key == 'f') {
 			std::cout << "FPS: " << fps(lap) << std::endl;
 		}
+		else if (key == 'r') {
+			int r1 = rnd();
+			int r2 = rnd();
+			int r3 = rnd();
+			int r4 = rnd();
 
+			unsigned char data[] = {
+				(r1 >> 24) & 0xFF, (r1 >> 16) & 0xFF, (r1 >> 8) & 0xFF, r1 & 0xFF,
+				(r2 >> 24) & 0xFF, (r2 >> 16) & 0xFF, (r2 >> 8) & 0xFF, r2 & 0xFF,
+				(r3 >> 24) & 0xFF, (r3 >> 16) & 0xFF, (r3 >> 8) & 0xFF, r3 & 0xFF,
+				(r4 >> 24) & 0xFF, (r4 >> 16) & 0xFF, (r4 >> 8) & 0xFF, r4 & 0xFF,
+			};
+			udp.send(data, sizeof data);
+			std::cout << std::hex << r1 << r2 << r3 << r4 << std::dec << std::endl;
+		}
 	}
 
+	running = false;
+	udpThread.detach(); // TODO: ?
 	if (DEBUG) {
 		fclose(feye);
 	}
 	std::cout << "Total: " << fpsTimer.stop() << std::endl;
 
+	WSACleanup();
 	return 0;
 
 }

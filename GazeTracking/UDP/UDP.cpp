@@ -10,7 +10,10 @@ UDP::UDP(unsigned short port, char *host) {
 	sockAddr.sin_port = htons(port);
 	sockAddr.sin_family = AF_INET;
 
-	sock = socket(AF_INET, SOCK_DGRAM, 0);
+	sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	int tout = 10;
+	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char *) &tout, sizeof tout);
+	setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (const char *) &tout, sizeof tout);
 }
 
 bool UDP::listen() {
@@ -27,8 +30,13 @@ bool UDP::send(unsigned char *data, unsigned int len) {
 		return false;
 	}
 	
-	sendto(sock, (char *)data, len, 0, (const sockaddr *)&sockAddr, sizeof sockAddr);
 	
+	int rs = sendto(sock, (char *)data, len, 0, (const sockaddr *)&sockAddr, sizeof sockAddr);
+	
+	if (rs == SOCKET_ERROR) {
+		return false;
+	}
+
 	return true;
 }
 

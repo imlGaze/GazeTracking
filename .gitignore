@@ -261,5 +261,6 @@ __pycache__/
 *.pyc
 
 *.avi
+*.mp4
 *.png
 *.csv
