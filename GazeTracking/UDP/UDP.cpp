@@ -1,4 +1,5 @@
 #include <winsock2.h>
+#include <Ws2tcpip.h>
 #include <iostream>
 #include "UDP.h"
 
@@ -6,7 +7,19 @@
 
 UDP::UDP(unsigned short port, char *host) {
 	memset(&sockAddr, 0, sizeof sockAddr);
-	sockAddr.sin_addr.s_addr = host != NULL ? inet_addr(host) : htonl(INADDR_ANY);
+	
+	if (host != NULL) {
+		in_addr addr;
+		if (InetPton(AF_INET, host, &addr) != 1) {
+			std::cout << "Error at InetPton" << std::endl;
+		}
+
+		sockAddr.sin_addr = addr;
+	}
+	else {
+		sockAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	}
+
 	sockAddr.sin_port = htons(port);
 	sockAddr.sin_family = AF_INET;
 
