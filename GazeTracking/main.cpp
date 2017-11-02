@@ -55,6 +55,7 @@ int main() {
 
 	PupilFinder finder;
 
+	Rect leftEyeRect, rightEyeRect;
 	Point leftPupil, rightPupil;
 	UDP udp(31416, "127.0.0.1");
 
@@ -79,31 +80,32 @@ int main() {
 			
 			if (DEBUG) {
 				if (rs) {
-					std::cout << "Pupil: " << leftPupil << ", " << rightPupil << std::endl;
+					// std::cout << "Pupil: " << leftPupil << ", " << rightPupil << std::endl;
 				}
 				else {
 					// std::cout << "Error" << std::endl;
 				}
 			}
 			
-			Sleep(16);
+			// Sleep(32);
 		}
 	});
 
 	std::random_device rnd;
+	int i = 0;
 	while (1) {
 		if (!realSense.queryNextFrame(ir, color, landmarks)) {
 			// continue;
 		}
 		
-		finder.find(ir, color, landmarks, leftPupil, rightPupil);
+		finder.find(ir, color, landmarks, leftEyeRect, rightEyeRect, leftPupil, rightPupil);
 
 		if (DEBUG) {
 			if (leftPupil.x > 8 && leftPupil.y > 8) {
-				rectangle(ir, Rect(leftPupil.x - 8, leftPupil.y - 8, 16, 16), Scalar(0, 0, 255), 2);
+				rectangle(ir, Rect(leftPupil.x - 8, leftPupil.y - 8, 16, 16) + Point(leftEyeRect.x, leftEyeRect.y), Scalar(0, 0, 255), 2);
 			}
 			if (rightPupil.x > 8 && rightPupil.y > 8) {
-				rectangle(ir, Rect(rightPupil.x - 8, rightPupil.y - 8, 16, 16), Scalar(0, 0, 255), 2);
+				rectangle(ir, Rect(rightPupil.x - 8, rightPupil.y - 8, 16, 16) + Point(rightEyeRect.x, rightEyeRect.y), Scalar(0, 0, 255), 2);
 			}
 		}
 
@@ -128,6 +130,14 @@ int main() {
 		char key = waitKey(1);
 		if (key == 'q') {
 			break;
+		}
+		else if (key == 'r') {
+			if (!realSense.initialize(IMAGE_WIDTH, IMAGE_HEIGHT)) {
+				std::cout << "Failed to re-init." << (i++ > 3 ? " R.I.P." : "") << std::endl;
+			}
+			else {
+				std::cout << "Re-inited" << std::endl;
+			}
 		}
 		else if (key == 't') {
 			finder.thresh++;
@@ -179,6 +189,7 @@ int main() {
 		fclose(feye);
 	}
 	std::cout << "Total: " << fpsTimer.stop() << std::endl;
+	cv::destroyAllWindows();
 
 	WSACleanup();
 	return 0;

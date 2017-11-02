@@ -24,7 +24,7 @@ UDP::UDP(unsigned short port, char *host) {
 	sockAddr.sin_family = AF_INET;
 
 	sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-	int tout = 10;
+	int tout = 1000;
 	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char *) &tout, sizeof tout);
 	setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (const char *) &tout, sizeof tout);
 }

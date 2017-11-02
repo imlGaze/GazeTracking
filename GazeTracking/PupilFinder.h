@@ -27,6 +27,6 @@ public:
 	int erode_itr = 2;
 	int dilate_itr = 3;
 
-	bool PupilFinder::find(Mat ir, Mat color, map<FaceData::LandmarkType, Point> landmarks, Point &leftPupil, Point &rightPupil);
+	bool PupilFinder::find(Mat ir, Mat color, map<FaceData::LandmarkType, Point> landmarks, Rect &leftEyeRect, Rect &rightEyeRect, Point &leftPupil, Point &rightPupil);
 
 };

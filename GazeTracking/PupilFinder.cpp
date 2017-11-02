@@ -73,7 +73,7 @@ Rect PupilFinder::getEyeCrop(Point center, Point lidLeft, Point lidRight) {
 	return eyeRectIR;
 }
 
-bool PupilFinder::find(Mat ir, Mat color, map<FaceData::LandmarkType, Point> landmarks, Point &leftPupil, Point &rightPupil) {
+bool PupilFinder::find(Mat ir, Mat color, map<FaceData::LandmarkType, Point> landmarks, Rect &leftEyeRect, Rect &rightEyeRect, Point &leftPupil, Point &rightPupil) {
 	Mat ir1ch;
 	cvtColor(ir, ir1ch, CV_BGR2GRAY);
 
@@ -94,6 +94,8 @@ bool PupilFinder::find(Mat ir, Mat color, map<FaceData::LandmarkType, Point> lan
 	if (leftEye.x != -1) {
 		Rect r = getEyeCrop(leftEye, leftEyeLidL, leftEyeLidR);
 		if (r.area() > 0) {
+			leftEyeRect = r;
+
 			Mat leftEyeCrop = irBinary(r);
 			emphasize(leftEyeCrop);
 
@@ -103,14 +105,17 @@ bool PupilFinder::find(Mat ir, Mat color, map<FaceData::LandmarkType, Point> lan
 			}
 
 			// leftPupil += Point(r.x, r.y);
-
-			cv::imshow("leftEye", leftEyeCrop);
+			if (DEBUG && SHOW_EACH_EYE) {
+				cv::imshow("leftEye", leftEyeCrop);
+			}
 		}
 	}
 
 	if (rightEye.x != -1) {
 		Rect r = getEyeCrop(rightEye, rightEyeLidL, rightEyeLidR);
 		if (r.area() > 0) {
+			rightEyeRect = r;
+
 			Mat rightEyeCrop = irBinary(r);
 			emphasize(rightEyeCrop);
 
@@ -121,7 +126,9 @@ bool PupilFinder::find(Mat ir, Mat color, map<FaceData::LandmarkType, Point> lan
 
 			// rightPupil += Point(r.x, r.y);
 
-			cv::imshow("rightEye", rightEyeCrop);
+			if (DEBUG && SHOW_EACH_EYE) {
+				cv::imshow("rightEye", rightEyeCrop);
+			}
 		}
 	}
 

@@ -16,3 +16,4 @@ const Size CHESS_PATTERN = Size(CHESS_COLS, CHESS_ROWS);
 const bool CALIB_SKIP_CHECK = 1;
 
 const bool DEBUG = true;
+const bool SHOW_EACH_EYE = false;
